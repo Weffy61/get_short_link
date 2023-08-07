@@ -8,8 +8,10 @@ git clone https://github.com/Weffy61/get_short_link
 ## Установка зависимостей
 Переход в директорию с исполняемым файлом и установка
 ```commandline
-cd get_short_link  
-pip install -r requirements.txt  
+cd get_short_link
+```
+```commandline
+pip install -r requirements.txt
 ```
 ## Получение токена
 Зарегистрируйтесь на [bitly.com](https://bitly.com)  
