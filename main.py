@@ -1,24 +1,25 @@
+import traceback
+
 import requests
 from dotenv import load_dotenv
 import os
 
 
 def shorten_link(token, url):
-    data = {
-        "long_url": f"{url}"
+    payload = {
+        "long_url": url
     }
     headers = {
-        "Authorization": f"Bearer {token}",
-        "Content-Type": "application/json",
+        "Authorization": f"Bearer {token}"
     }
-    response = requests.post('https://api-ssl.bitly.com/v4/bitlinks', headers=headers, json=data)
+    response = requests.post('https://api-ssl.bitly.com/v4/bitlinks', headers=headers, json=payload)
     response.raise_for_status()
     json_response = response.json()
-    return f'Битлинк: {json_response["id"]}'
+    return json_response["id"]
 
 
 def count_clicks(token, url):
-    data = {
+    payload = {
         "unit": "day",
         "units": -1
     }
@@ -27,38 +28,39 @@ def count_clicks(token, url):
     }
     response = requests.get(f'https://api-ssl.bitly.com/v4/bitlinks/{url}/clicks/summary',
                             headers=headers,
-                            params=data)
+                            params=payload)
     response.raise_for_status()
     json_response = response.json()
-    return f"По вашей ссылке прошли: {json_response['total_clicks']} раз(а)"
+    return json_response['total_clicks']
 
 
 def is_bitlink(url, token):
-    bitlink = False
     headers = {
         "Authorization": f"Bearer {token}"
     }
     response = requests.get(f'https://api-ssl.bitly.com/v4/bitlinks/{url}', headers=headers)
-    if response.ok:
-        bitlink = True
-        return bitlink
-    return bitlink
+    return response.ok
 
 
 def main():
-    load_dotenv(dotenv_path='config/.env')
-    token = os.environ.get('TOKEN')
-    url = input('Введите ссылку: ')
-    if not is_bitlink(url, token):
-        try:
-            print(shorten_link(token, url))
-        except requests.exceptions.HTTPError as ex:
-            print(ex)
-    else:
-        try:
-            print(count_clicks(token, url))
-        except requests.exceptions.HTTPError as ex:
-            print(ex)
+    load_dotenv()
+    try:
+        token = os.environ['TOKEN']
+        url = input('Введите ссылку: ')
+        if is_bitlink(url, token):
+            try:
+                print(f"По вашей ссылке прошли: {count_clicks(token, url)} раз(а)")
+                # print(count_clicks(token, url))
+            except requests.exceptions.HTTPError as ex:
+                print(ex)
+        else:
+            try:
+                print(f'Битлинк: {shorten_link(token, url)}')
+                # print(shorten_link(token, url))
+            except requests.exceptions.HTTPError as ex:
+                print(ex)
+    except KeyError:
+        print('API токен не найден')
 
 
 if __name__ == '__main__':
